@@ -1,13 +1,20 @@
 const API_PREFIX = '/api';
 
+export function isAbortError(error) {
+  return error?.name === 'AbortError';
+}
+
 async function request(path, { userId, ...options } = {}) {
+  const headers = { ...options.headers };
+  if (userId) {
+    headers['X-User-Id'] = userId;
+  }
+
   let response;
   try {
-    response = await fetch(`${API_PREFIX}${path}`, {
-      ...options,
-      headers: { ...options.headers, 'X-User-Id': userId },
-    });
-  } catch {
+    response = await fetch(`${API_PREFIX}${path}`, { ...options, headers });
+  } catch (error) {
+    if (isAbortError(error)) throw error;
     throw new Error('Não foi possível conectar ao servidor.');
   }
 
@@ -19,8 +26,8 @@ async function request(path, { userId, ...options } = {}) {
   return response;
 }
 
-export async function listDocuments(userId) {
-  const response = await request('/documents', { userId });
+export async function listDocuments(userId, { signal } = {}) {
+  const response = await request('/documents', { userId, signal });
   return response.json();
 }
 

@@ -1,13 +1,19 @@
 const fs = require('node:fs/promises');
-const { randomUUID } = require('node:crypto');
+const path = require('node:path');
 
-function createDocumentsRepository() {
+const KEEP_FILES = new Set(['.gitkeep']);
+
+function createDocumentsRepository({ storageDirectory }) {
   const documents = new Map();
 
+  // O basename impede que um nome armazenado saia do diretório de storage.
+  function storedFilePath(storedName) {
+    return path.join(storageDirectory, path.basename(storedName));
+  }
+
   return {
-    create(documentData) {
-      const document = { id: randomUUID(), ...documentData };
-      documents.set(document.id, document);
+    create(document) {
+      documents.set(document.id, { ...document });
       return { ...document };
     },
 
@@ -23,16 +29,37 @@ function createDocumentsRepository() {
       return document ? { ...document } : null;
     },
 
-    async removeStoredFile(filePath) {
-      try {
-        await fs.unlink(filePath);
-      } catch (error) {
-        if (error.code !== 'ENOENT') {
-          throw error;
+    usageByOwner(owner) {
+      let count = 0;
+      let bytes = 0;
+      for (const document of documents.values()) {
+        if (document.owner === owner) {
+          count += 1;
+          bytes += document.size;
         }
       }
+      return { count, bytes };
+    },
+
+    getFileLocation(document) {
+      return { root: storageDirectory, fileName: path.basename(document.storedName) };
+    },
+
+    async removeStoredFile(storedName) {
+      await fs.rm(storedFilePath(storedName), { force: true });
     },
   };
 }
 
-module.exports = { createDocumentsRepository };
+// Os metadados ficam em memória; na inicialização, todo arquivo existente é órfão.
+async function clearStorageDirectory(storageDirectory) {
+  await fs.mkdir(storageDirectory, { recursive: true });
+  const entries = await fs.readdir(storageDirectory);
+  const removable = entries.filter((entry) => !KEEP_FILES.has(entry));
+  await Promise.all(
+    removable.map((entry) => fs.rm(path.join(storageDirectory, entry), { force: true, recursive: true }))
+  );
+  return removable.length;
+}
+
+module.exports = { createDocumentsRepository, clearStorageDirectory };

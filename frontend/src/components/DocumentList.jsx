@@ -1,10 +1,5 @@
 import DownloadButton from './DownloadButton.jsx';
-
-function formatSize(bytes) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
+import { formatDateTime, formatSize } from '../utils/format.js';
 
 export default function DocumentList({ documents, userId, isLoading, error }) {
   return (
@@ -45,10 +40,10 @@ export default function DocumentList({ documents, userId, isLoading, error }) {
                   <td className="doc-table__name">{doc.originalName}</td>
                   <td className="doc-table__meta">{formatSize(doc.size)}</td>
                   <td className="doc-table__meta">
-                    {new Date(doc.uploadedAt).toLocaleString('pt-BR')}
+                    {formatDateTime(doc.uploadedAt)}
                   </td>
                   <td className="doc-table__actions">
-                    <DownloadButton document={doc} userId={userId} />
+                    <DownloadButton doc={doc} userId={userId} />
                   </td>
                 </tr>
               ))}

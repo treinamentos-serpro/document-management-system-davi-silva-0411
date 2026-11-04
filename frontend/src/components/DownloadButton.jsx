@@ -6,11 +6,14 @@ function saveBlob(blob, fileName) {
   const link = document.createElement('a');
   link.href = url;
   link.download = fileName;
+  document.body.append(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  // Revogar no mesmo tick pode cancelar o download em alguns navegadores.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-export default function DownloadButton({ document: doc, userId }) {
+export default function DownloadButton({ doc, userId }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState('');
 
@@ -34,6 +37,7 @@ export default function DownloadButton({ document: doc, userId }) {
         type="button"
         onClick={handleClick}
         disabled={isDownloading}
+        aria-label={`Baixar ${doc.originalName}`}
       >
         {isDownloading ? 'Baixando...' : 'Baixar'}
       </button>

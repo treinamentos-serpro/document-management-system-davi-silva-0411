@@ -1,37 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
-import UploadComponent from './components/UploadComponent.jsx';
-import DocumentList from './components/DocumentList.jsx';
-import { listDocuments } from './services/documentsApi.js';
+import { useState } from 'react';
+import DocumentsPage from './pages/DocumentsPage.jsx';
 
 const DEFAULT_USER_ID = 'usuario-demo';
 
 export default function App() {
   const [userId, setUserId] = useState(DEFAULT_USER_ID);
-  const [documents, setDocuments] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const trimmedUserId = userId.trim();
-
-  const loadDocuments = useCallback(async () => {
-    if (!trimmedUserId) {
-      setDocuments([]);
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-    try {
-      setDocuments(await listDocuments(trimmedUserId));
-    } catch (loadError) {
-      setError(loadError.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [trimmedUserId]);
-
-  useEffect(() => {
-    loadDocuments();
-  }, [loadDocuments]);
 
   return (
     <>
@@ -50,27 +23,15 @@ export default function App() {
               value={userId}
               onChange={(event) => setUserId(event.target.value)}
               maxLength={128}
+              pattern="[A-Za-z0-9_.@\-]+"
+              title='Use letras, números, ".", "_", "-" ou "@".'
             />
           </label>
         </div>
       </header>
 
       <main className="app-main">
-        {trimmedUserId ? (
-          <>
-            <UploadComponent userId={trimmedUserId} onUploaded={loadDocuments} />
-            <DocumentList
-              documents={documents}
-              userId={trimmedUserId}
-              isLoading={isLoading}
-              error={error}
-            />
-          </>
-        ) : (
-          <p className="panel message message--muted">
-            Informe um usuário para gerenciar seus documentos.
-          </p>
-        )}
+        <DocumentsPage userId={userId.trim()} />
       </main>
     </>
   );
