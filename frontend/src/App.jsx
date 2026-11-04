@@ -34,27 +34,44 @@ export default function App() {
   }, [loadDocuments]);
 
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem' }}>
-      <h1>Document Management System</h1>
+    <>
+      <header className="app-header">
+        <div className="app-header__inner">
+          <h1 className="app-title">
+            <span className="app-title__mark" aria-hidden="true">
+              ▤{' '}
+            </span>
+            Document Management System
+          </h1>
+          <label className="user-field">
+            Usuário
+            <input
+              className="input"
+              value={userId}
+              onChange={(event) => setUserId(event.target.value)}
+              maxLength={128}
+            />
+          </label>
+        </div>
+      </header>
 
-      <label>
-        Usuário:{' '}
-        <input value={userId} onChange={(event) => setUserId(event.target.value)} maxLength={128} />
-      </label>
-
-      {trimmedUserId ? (
-        <>
-          <UploadComponent userId={trimmedUserId} onUploaded={loadDocuments} />
-          <DocumentList
-            documents={documents}
-            userId={trimmedUserId}
-            isLoading={isLoading}
-            error={error}
-          />
-        </>
-      ) : (
-        <p>Informe um usuário para gerenciar seus documentos.</p>
-      )}
-    </main>
+      <main className="app-main">
+        {trimmedUserId ? (
+          <>
+            <UploadComponent userId={trimmedUserId} onUploaded={loadDocuments} />
+            <DocumentList
+              documents={documents}
+              userId={trimmedUserId}
+              isLoading={isLoading}
+              error={error}
+            />
+          </>
+        ) : (
+          <p className="panel message message--muted">
+            Informe um usuário para gerenciar seus documentos.
+          </p>
+        )}
+      </main>
+    </>
   );
 }

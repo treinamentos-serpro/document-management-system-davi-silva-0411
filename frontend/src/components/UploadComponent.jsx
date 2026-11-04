@@ -29,18 +29,26 @@ export default function UploadComponent({ userId, onUploaded }) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Enviar documento</h2>
-      <input
-        ref={inputRef}
-        type="file"
-        onChange={(event) => setFile(event.target.files[0] ?? null)}
-        disabled={isUploading}
-      />
-      <button type="submit" disabled={isUploading || !file}>
-        {isUploading ? 'Enviando...' : 'Enviar'}
-      </button>
-      {error && <p role="alert">{error}</p>}
+    <form className="panel upload-form" onSubmit={handleSubmit}>
+      <h2 className="panel__title">Enviar documento</h2>
+      <div className="upload-form__row">
+        <input
+          className="file-input"
+          aria-label="Arquivo para enviar"
+          ref={inputRef}
+          type="file"
+          onChange={(event) => setFile(event.target.files[0] ?? null)}
+          disabled={isUploading}
+        />
+        <button className="button button--primary" type="submit" disabled={isUploading || !file}>
+          {isUploading ? 'Enviando...' : 'Enviar'}
+        </button>
+      </div>
+      {error && (
+        <p className="message message--error" role="alert">
+          {error}
+        </p>
+      )}
     </form>
   );
 }

@@ -29,10 +29,19 @@ export default function DownloadButton({ document: doc, userId }) {
 
   return (
     <>
-      <button type="button" onClick={handleClick} disabled={isDownloading}>
+      <button
+        className="button button--secondary"
+        type="button"
+        onClick={handleClick}
+        disabled={isDownloading}
+      >
         {isDownloading ? 'Baixando...' : 'Baixar'}
       </button>
-      {error && <span role="alert"> {error}</span>}
+      {error && (
+        <span className="inline-error" role="alert">
+          {error}
+        </span>
+      )}
     </>
   );
 }
