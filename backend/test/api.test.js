@@ -61,6 +61,49 @@ test('faz upload, lista e baixa documentos somente para o proprietário', async 
   assert.equal(await downloadResponse.text(), 'document content');
 });
 
+test('lista vazia retorna 200 e um array vazio', async (context) => {
+  const { baseUrl } = await startServer(context);
+
+  const response = await get(`${baseUrl}/documents`);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), []);
+});
+
+test('listagem e download rejeitam usuário ausente ou inválido', async (context) => {
+  const { baseUrl } = await startServer(context);
+  const document = await (await upload(baseUrl)).json();
+
+  for (const endpoint of ['/documents', `/documents/${document.id}/download`]) {
+    for (const userId of [undefined, '../admin']) {
+      const headers = userId === undefined ? {} : { 'X-User-Id': userId };
+      const response = await fetch(`${baseUrl}${endpoint}`, { headers });
+
+      assert.equal(response.status, 400, `${endpoint}, userId=${userId}`);
+      assert.equal((await response.json()).error.code, 'INVALID_USER');
+    }
+  }
+});
+
+test('upload e download preservam todos os bytes de um arquivo binário', async (context) => {
+  const { baseUrl, storageDirectory } = await startServer(context);
+  const content = Buffer.from([0x00, 0x01, 0x7f, 0x80, 0xfe, 0xff]);
+
+  const uploadResponse = await upload(baseUrl, { content, fileName: 'sample.bin' });
+  assert.equal(uploadResponse.status, 201);
+  const document = await uploadResponse.json();
+  assert.equal(document.originalName, 'sample.bin');
+  assert.equal(document.size, content.length);
+  assert.deepEqual(await fs.readFile(path.join(storageDirectory, document.id)), content);
+
+  const downloadResponse = await get(`${baseUrl}/documents/${document.id}/download`);
+  assert.equal(downloadResponse.status, 200);
+  assert.equal(downloadResponse.headers.get('content-type'), 'application/octet-stream');
+  assert.equal(Number(downloadResponse.headers.get('content-length')), content.length);
+  assert.match(downloadResponse.headers.get('content-disposition'), /^attachment; filename="sample\.bin"/);
+  assert.deepEqual(Buffer.from(await downloadResponse.arrayBuffer()), content);
+});
+
 test('lista documentos do mais recente para o mais antigo', async (context) => {
   const { baseUrl } = await startServer(context);
   const first = await (await upload(baseUrl, { fileName: 'first.txt' })).json();
