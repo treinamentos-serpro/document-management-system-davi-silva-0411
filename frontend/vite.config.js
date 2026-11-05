@@ -1,18 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// Configuração mínima do Vite. O proxy direciona chamadas /api para o backend
-// local durante o desenvolvimento (Passo 3 e Passo 4 - integração).
+// O backend expõe as rotas sob /api; o proxy apenas encaminha as chamadas,
+// tanto no `vite dev` quanto no `vite preview`.
+const apiProxy = {
+  '/api': {
+    target: process.env.VITE_API_TARGET || 'http://localhost:3000',
+    changeOrigin: true,
+  },
+};
+
 export default defineConfig({
   plugins: [react()],
-  server: {
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
-  },
+  server: { port: 5173, proxy: apiProxy },
+  preview: { proxy: apiProxy },
 });

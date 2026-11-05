@@ -1,20 +1,38 @@
-// Seed do componente raiz do Document Management System.
-//
-// Este é apenas um ponto de partida mínimo. Durante o Passo 3 você vai usar o
-// Agent Mode do GitHub Copilot para construir os componentes:
-//   - components/UploadComponent
-//   - components/DocumentList
-//   - components/DownloadButton
-// e o serviço services/ que consome a API do backend via fetch.
+import { useState } from 'react';
+import DocumentsPage from './pages/DocumentsPage.jsx';
+
+const DEFAULT_USER_ID = 'usuario-demo';
 
 export default function App() {
+  const [userId, setUserId] = useState(DEFAULT_USER_ID);
+
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem' }}>
-      <h1>Document Management System</h1>
-      <p>
-        Seed do frontend. Construa a interface durante o Passo 3 usando o Agent
-        Mode do GitHub Copilot.
-      </p>
-    </main>
+    <>
+      <header className="app-header">
+        <div className="app-header__inner">
+          <h1 className="app-title">
+            <span className="app-title__mark" aria-hidden="true">
+              ▤{' '}
+            </span>
+            Document Management System
+          </h1>
+          <label className="user-field">
+            Usuário
+            <input
+              className="input"
+              value={userId}
+              onChange={(event) => setUserId(event.target.value)}
+              maxLength={128}
+              pattern="[A-Za-z0-9_.@\-]+"
+              title='Use letras, números, ".", "_", "-" ou "@".'
+            />
+          </label>
+        </div>
+      </header>
+
+      <main className="app-main">
+        <DocumentsPage userId={userId.trim()} />
+      </main>
+    </>
   );
 }

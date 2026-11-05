@@ -1,32 +1,31 @@
-// Seed do servidor backend do Document Management System.
-//
-// Este arquivo é apenas um ponto de partida mínimo. Ao longo do workshop você
-// vai usar o Agent Mode do GitHub Copilot para construir as camadas:
-//   - routes/       (definição das rotas)
-//   - controllers/  (entrada HTTP e validação)
-//   - services/     (regras de negócio)
-//   - repositories/ (persistência: arquivos locais + metadados em memória)
-//
-// Restrição do projeto: uploads são gravados no filesystem local da aplicação
-// usando multer com diskStorage. Não utilize provedores externos.
-
 const express = require('express');
+const { loadConfig } = require('./config');
+const { createDocumentsRepository } = require('./repositories/documents.repository');
+const { createDocumentsService } = require('./services/documents.service');
+const { createDocumentsController } = require('./controllers/documents.controller');
+const { createDocumentsRouter } = require('./routes/documents.routes');
+const { createUploadMiddleware } = require('./middlewares/upload');
+const { securityHeaders } = require('./middlewares/security-headers');
+const { errorHandler } = require('./middlewares/error-handler');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+function createApp(overrides = {}) {
+  const config = { ...loadConfig(), ...overrides };
+  const repository = createDocumentsRepository({ storageDirectory: config.storageDirectory });
+  const service = createDocumentsService(repository, config);
+  const controller = createDocumentsController(service);
+  const upload = createUploadMiddleware(config);
 
-app.use(express.json());
+  const app = express();
+  app.disable('x-powered-by');
+  app.use(securityHeaders);
 
-// Endpoint de verificação de saúde. As demais rotas (/upload, /documents,
-// /documents/:id/download) serão implementadas durante o Passo 2.
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
+  const healthHandler = (req, res) => res.json({ status: 'ok' });
+  app.get('/health', healthHandler);
+  app.get('/api/health', healthHandler);
+  app.use('/api', createDocumentsRouter({ controller, upload }));
+  app.use(errorHandler);
 
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`DMS backend ouvindo na porta ${PORT}`);
-  });
+  return app;
 }
 
-module.exports = app;
+module.exports = { createApp };

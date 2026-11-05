@@ -2,12 +2,12 @@
   "name": "dms-backend",
   "version": "0.1.0",
   "description": "Backend do Document Management System (seed do workshop)",
-  "main": "src/app.js",
+  "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "node --watch src/app.js",
-    "test": "node --test"
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test \"test/**/*.test.js\""
   },
   "keywords": [
     "dms",
